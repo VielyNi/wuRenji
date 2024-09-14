@@ -4,6 +4,7 @@ import torch.optim as op
 import numpy as np
 from torch.utils.data import Dataset,DataLoader
 import os.path as osp
+import os
 
 from model.joint import Joint_model
 from model.gaitgraph.gaitgraph2 import GaitGraph2
@@ -51,7 +52,7 @@ class test_loader(Dataset):
     self.label = torch.from_numpy(test_label).cuda()
     self.joint = torch.from_numpy(test_data_joint).cuda()
     self.bone = torch.from_numpy(test_data_bone).cuda()
-    self.joint_motion = torch.from_numpy(test_data_joint_motion).permute()
+    self.joint_motion = torch.from_numpy(test_data_joint_motion)
   def __getitem__(self,item):
     # N T V M C
     return self.joint[item],self.label[item]
@@ -71,13 +72,13 @@ def test(model, batch_size):
         pred = torch.argmax(pred,dim=1)
         correct += torch.sum(pred==train_label)
         total += len(train_label)
-    print(correct/total)
+    print("acc:",correct/total)
 
 def train(epoch,batch_size, model_name):
   model = model_list[model_name]().train().cuda()
   dataloader = DataLoader(data_loader(),batch_size = batch_size)
-  optimizer = op.Adam(model.parameters(), lr=0.01)
-  schedule = op.lr_scheduler.LambdaLR(optimizer, lr_lambda = lambda epoch: 1/(epoch+1))
+  optimizer = op.Adam(model.parameters(), lr=0.1,weight_decay=0.0005)
+  # schedule = op.lr_scheduler.LambdaLR(optimizer, lr_lambda = lambda epoch: 1/(epoch+1))
   loss_fn =  nn.CrossEntropyLoss()
   
   print("start training")
@@ -96,14 +97,15 @@ def train(epoch,batch_size, model_name):
       
       loss.backward()
       optimizer.step()
-      schedule.step()
-      
-    if batch%10 == 0:
+      # schedule.step()
+      if batch%batch_size == 0:
         print("loss:",loss)
       
     if e%10 == 0:
-      test(model)
+      test(model, 16)
+      if os.path.exists("./ckpt") == False:
+        os.mkdir("./ckpt")
       torch.save(model.state_dict(),osp.join("./ckpt",model_name+"_{e}"+".pth"))  
-train(10,16, "CTR")
+train(10,32, "CTR")
       
       
