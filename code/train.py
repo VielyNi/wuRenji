@@ -7,10 +7,12 @@ import os.path as osp
 
 from model.joint import Joint_model
 from model.gaitgraph.gaitgraph2 import GaitGraph2
+from model.ctrgcn import Model
 
 model_list = {
   "joint":Joint_model,
-  "graph":GaitGraph2
+  "graph":GaitGraph2,
+  "CTR":Model
 }
 
 
@@ -32,10 +34,10 @@ N, C, T, V, M = train_data_joint.shape
 class data_loader(Dataset):
   def __init__(self):
     self.label = torch.from_numpy(train_label).cuda()
-    self.joint = torch.from_numpy(train_data_joint).permute(0,2,3,4,1).cuda()
-    self.bone = torch.from_numpy(train_data_bone).permute(0,2,3,4,1).cuda()
-    self.joint_motion = torch.from_numpy(train_data_joint_motion).permute(0,2,3,4,1).cuda()
-    self.bone_motion = torch.from_numpy(train_data_bone_motion).permute(0,2,3,4,1).cuda()
+    self.joint = torch.from_numpy(train_data_joint).cuda()
+    self.bone = torch.from_numpy(train_data_bone).cuda()
+    self.joint_motion = torch.from_numpy(train_data_joint_motion).cuda()
+    self.bone_motion = torch.from_numpy(train_data_bone_motion).cuda()
   
   def __getitem__(self,item):
     # N T V M C
@@ -47,8 +49,8 @@ class test_loader(Dataset):
   def __init__(self) -> None:
     super().__init__()
     self.label = torch.from_numpy(test_label).cuda()
-    self.joint = torch.from_numpy(test_data_joint).permute(0,2,3,4,1).cuda()
-    self.bone = torch.from_numpy(test_data_bone).permute(0,2,3,4,1).cuda()
+    self.joint = torch.from_numpy(test_data_joint).cuda()
+    self.bone = torch.from_numpy(test_data_bone).cuda()
     self.joint_motion = torch.from_numpy(test_data_joint_motion).permute()
   def __getitem__(self,item):
     # N T V M C
@@ -102,6 +104,6 @@ def train(epoch,batch_size, model_name):
     if e%10 == 0:
       test(model)
       torch.save(model.state_dict(),osp.join("./ckpt",model_name+"_{e}"+".pth"))  
-train(10,16, "graph")
+train(10,16, "CTR")
       
       
