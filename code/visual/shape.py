@@ -1,9 +1,9 @@
 import numpy as np
 
-x = np.load('/home/gait/wuRenji/src/data/test_joint_A.npy',mmap_mode='r')
+x = np.load('data/train_joint.npy',mmap_mode='r')
 print(x.shape)
 
-x = np.load('/home/gait/wuRenji/src/data/test_label_A.npy',mmap_mode='r')
+x = np.load('data/test_label.npy',mmap_mode='r')
 print(x.shape)
 print(x.max())
 

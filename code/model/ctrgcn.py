@@ -273,10 +273,10 @@ class TCN_GCN_unit(nn.Module):
         return y
 
 
-class Model(nn.Module):
+class CTRGCN(nn.Module):
     def __init__(self, num_class=155, num_point=17, num_person=2,in_channels=3,
                  drop_out=0, adaptive=True):
-        super(Model, self).__init__()
+        super(CTRGCN, self).__init__()
 
         # if graph is None:
         #     raise ValueError()
@@ -286,7 +286,7 @@ class Model(nn.Module):
 
         # A = self.graph.A # 3,25,25
         
-        self.graph = Graph(joint_format="coco",max_hop=2)
+        self.graph = Graph(joint_format="coco",max_hop=3)
         
         A = self.graph.A
 
@@ -341,5 +341,3 @@ class Model(nn.Module):
         x = self.drop_out(x)
 
         return self.fc(x)
-    
-m = Model()
