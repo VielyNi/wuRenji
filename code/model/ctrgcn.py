@@ -286,7 +286,7 @@ class CTRGCN(nn.Module):
 
         # A = self.graph.A # 3,25,25
         
-        self.graph = Graph(joint_format="coco",max_hop=3)
+        self.graph = Graph(joint_format="coco",max_hop=2)
         
         A = self.graph.A
 
