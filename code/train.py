@@ -51,51 +51,6 @@ def get_logger(name):
   logger.addHandler(console)
   return logger
 
-class data_loader(Dataset):
-  def __init__(self):
-    self.norm = PreNormalize3D()
-    
-    self.label = train_label
-    self.joint = train_data_joint
-    self.bone = train_data_bone
-    self.joint_motion = train_data_joint_motion
-    self.bone_motion = train_data_bone_motion
-    self.mix = np.concatenate((self.joint,self.bone,self.joint_motion),axis=1)
-  
-  def __getitem__(self,item):
-    # N T V M C
-    return {
-            "joint":self.norm(self.joint[item]),
-            "bone":self.norm(self.bone[item]),
-            "joint_motion":self.norm(self.joint_motion[item]),
-            "bone_motion":self.norm(self.bone_motion[item]),
-            # "mix":self.norm(self.mix[item]),
-            },self.label[item]
-  def __len__(self):
-    return len(self.label)
-  
-class test_loader(Dataset):
-  def __init__(self) -> None:
-    super().__init__()
-    self.norm = PreNormalize3D()
-    
-    self.label = test_label
-    self.joint = test_data_joint
-    self.bone = test_data_bone
-    self.joint_motion = test_data_joint_motion
-    self.bone_motion = test_data_bone_motion
-    self.mix = np.concatenate((self.joint,self.bone,self.joint_motion),axis=1)
-  def __getitem__(self,item):
-    # N T V M C
-    return {
-            "joint":self.norm(self.joint[item]),
-            "bone":self.norm(self.bone[item]),
-            "joint_motion":self.norm(self.joint_motion[item]),
-            "bone_motion":self.norm(self.bone_motion[item]),
-            # "mix":self.norm(self.mix[item]),
-            },self.label[item]
-  def __len__(self):
-    return len(self.label)
 
 class PreNormalize3D:
     """PreNormalize for NTURGB+D 3D keypoints (x, y, z). Codes adapted from https://github.com/lshiwjx/2s-AGCN. """
@@ -167,7 +122,60 @@ class PreNormalize3D:
             skeleton = np.einsum('abcd,kd->abck', skeleton, matrix_x)
 
         return np.transpose(skeleton,(3,1,2,0))
+
+def norm(x):
+  normlize = PreNormalize3D()
+  for i in range(x.shape[0]):
+    x[i] = normlize(x[i])
+  return x
+
+class data_loader(Dataset):
+  def __init__(self):
+    
+    self.label = torch.from_numpy(train_label).cuda()
+    self.joint = torch.from_numpy(norm(train_data_joint)).cuda().half()
+    self.bone = torch.from_numpy(norm(train_data_bone)).cuda().half()
+    self.joint_motion = torch.from_numpy(norm(train_data_joint_motion)).cuda().half()
+    self.bone_motion = torch.from_numpy(norm(train_data_bone_motion)).cuda().half()
+    # self.mix = np.concatenate((self.joint,self.bone,self.joint_motion),axis=1)
   
+  def __getitem__(self,item):
+    # N T V M C
+    return {
+            "joint":self.joint[item],
+            "bone":self.bone[item],
+            "joint_motion":self.joint_motion[item],
+            "bone_motion":self.bone_motion[item],
+            # "mix":self.norm(self.mix[item]),
+            },self.label[item]
+  def __len__(self):
+    return len(self.label)
+  
+class test_loader(Dataset):
+  def __init__(self) -> None:
+    super().__init__()
+    
+    self.label = torch.from_numpy(test_label).cuda()
+    self.joint = torch.from_numpy(norm(test_data_joint)).cuda().half()
+    self.bone = torch.from_numpy(norm(test_data_bone)).cuda().half()
+    self.joint_motion = torch.from_numpy(norm(test_data_joint_motion)).cuda().half()
+    self.bone_motion = torch.from_numpy(norm(test_data_bone_motion)).cuda().half()
+    # self.mix = np.concatenate((self.joint,self.bone,self.joint_motion),axis=1)
+    
+ 
+    
+  def __getitem__(self,item):
+    # N T V M C
+    return {
+            "joint":self.joint[item],
+            "bone":self.bone[item],
+            "joint_motion":self.joint_motion[item],
+            "bone_motion":self.bone_motion[item],
+            # "mix":self.norm(self.mix[item]),
+            },self.label[item]
+  def __len__(self):
+    return len(self.label)
+ 
 
 def get_result(model, mod):
     model.eval()
@@ -193,23 +201,23 @@ def test(model, batch_size, mod):
     
     with torch.no_grad():
       for batch, (test_data, test_label)in enumerate(testloader):
-        pred = model(test_data[mod].cuda().half())
+        pred = model(test_data[mod])
         pred = torch.argmax(pred,dim=1)
-        correct += torch.sum(pred==test_label.cuda())
+        correct += torch.sum(pred==test_label)
         total += len(test_label)
-    print("acc:",correct/total)
-    return correct/total
+    print("acc:",(correct/total).item())
+    return (correct/total).item()
 
 def train(epoch,batch_size, model_name, mod, args=3):
   
   model = model_list[model_name](in_channels=args).train().cuda().half()
   
   dataloader = DataLoader(data_loader(),batch_size = batch_size,shuffle=True)
-  optimizer = op.SGD(model.parameters(), lr=0.05,momentum=0.9,weight_decay=0.0004)
-  schedule = op.lr_scheduler.LambdaLR(optimizer, lr_lambda = lambda epoch: 1/(1+epoch))
+  optimizer = op.SGD(model.parameters(), lr=0.01,momentum=0.9,weight_decay=0.0004)
+  # schedule = op.lr_scheduler.LambdaLR(optimizer, lr_lambda = lambda epoch: 1/(1+epoch))
   loss_fn =  nn.CrossEntropyLoss()
   
-  logger = get_logger("./log/"+model_name+"_"+mod+time.strftime("%d %H:%M:%S"))
+  logger = get_logger("./log/"+model_name+"_"+mod+"_"+time.strftime("%d %H:%M:%S"))
   logger.info("start training")
   
   print("start training")
@@ -217,7 +225,7 @@ def train(epoch,batch_size, model_name, mod, args=3):
     logger.info(f"epoch:{e}")
     for batch, (train_data, train_label)in enumerate(dataloader):
       
-      train_data = train_data[mod].cuda().half()
+      train_data = train_data[mod]
       
       optimizer.zero_grad()
       label = torch.zeros((batch_size,155)).cuda()
@@ -230,22 +238,22 @@ def train(epoch,batch_size, model_name, mod, args=3):
       loss.backward()
       optimizer.step()
       
-      if batch%batch_size == 0:
+      if batch%100 == 0:
         logger.info(f"batch:{batch}"+"   "+f"loss:{loss.item()}")
     
-    if e < 5:
-      schedule.step()
+    # if e < 10:
+    #   schedule.step()
     
     test(model, 16, mod)
     
-    if e%32 == 31:
+    if e%16 == 15:
       logger.info(test(model, 16, mod))
       if os.path.exists("./ckpt") == False:
         os.mkdir("./ckpt")
       torch.save(model.state_dict(),osp.join(f"./ckpt/{mod}_{model_name}_{e}.pth"))  
  
  
-train(64,16, "CTR","joint") 
-# train(64,16, "CTR","bone")      
+# train(64,16, "CTR","joint") 
+train(64,16, "CTR","bone")      
 # train(64,16, "MIX","mix",9)
       
