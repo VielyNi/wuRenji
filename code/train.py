@@ -7,27 +7,31 @@ import os.path as osp
 import os
 import time
 import logging
+from math import *
 
-from model.joint import Joint_model
-from model.gaitgraph.gaitgraph2 import GaitGraph2
+from model.STTFormer.model.sttformer import Model as STT
 from model.tdgcn import Model as TD
 from model.ctrgcn import CTRGCN
+from model.SM.ske_mixf import Model as SM
+
+
 model_list = {
   "TD":TD,
   "CTR":CTRGCN,
-  "MIX":CTRGCN,
+  "STT":STT,
+  "SM":SM,
 }
 
 
 train_data_joint = np.load('./data/train_joint.npy').copy()
 train_data_bone = np.load('./data/train_bone.npy').copy()
-train_data_joint_motion = np.load('./data/train_joint_motion.npy').copy()
-train_data_bone_motion = np.load('./data/train_bone_motion.npy').copy()
+# train_data_joint_motion = np.load('./data/train_joint_motion.npy').copy()
+# train_data_bone_motion = np.load('./data/train_bone_motion.npy').copy()
 
 test_data_joint = np.load('./data/test_joint.npy').copy()
 test_data_bone = np.load('./data/test_bone.npy').copy()
-test_data_joint_motion = np.load('./data/test_joint_motion.npy').copy()
-test_data_bone_motion = np.load('./data/test_bone_motion.npy').copy()
+# test_data_joint_motion = np.load('./data/test_joint_motion.npy').copy()
+# test_data_bone_motion = np.load('./data/test_bone_motion.npy').copy()
 
 
 train_label = np.load('./data/train_label.npy').copy()
@@ -135,8 +139,8 @@ class data_loader(Dataset):
     self.label = torch.from_numpy(train_label).cuda()
     self.joint = torch.from_numpy(norm(train_data_joint)).cuda().half()
     self.bone = torch.from_numpy(norm(train_data_bone)).cuda().half()
-    self.joint_motion = torch.from_numpy(norm(train_data_joint_motion)).cuda().half()
-    self.bone_motion = torch.from_numpy(norm(train_data_bone_motion)).cuda().half()
+    # self.joint_motion = torch.from_numpy(norm(train_data_joint_motion)).cuda().half()
+    # self.bone_motion = torch.from_numpy(norm(train_data_bone_motion)).cuda().half()
     # self.mix = np.concatenate((self.joint,self.bone,self.joint_motion),axis=1)
   
   def __getitem__(self,item):
@@ -144,8 +148,8 @@ class data_loader(Dataset):
     return {
             "joint":self.joint[item],
             "bone":self.bone[item],
-            "joint_motion":self.joint_motion[item],
-            "bone_motion":self.bone_motion[item],
+            # "joint_motion":self.joint_motion[item],
+            # "bone_motion":self.bone_motion[item],
             # "mix":self.norm(self.mix[item]),
             },self.label[item]
   def __len__(self):
@@ -158,8 +162,8 @@ class test_loader(Dataset):
     self.label = torch.from_numpy(test_label).cuda()
     self.joint = torch.from_numpy(norm(test_data_joint)).cuda().half()
     self.bone = torch.from_numpy(norm(test_data_bone)).cuda().half()
-    self.joint_motion = torch.from_numpy(norm(test_data_joint_motion)).cuda().half()
-    self.bone_motion = torch.from_numpy(norm(test_data_bone_motion)).cuda().half()
+    # self.joint_motion = torch.from_numpy(norm(test_data_joint_motion)).cuda().half()
+    # self.bone_motion = torch.from_numpy(norm(test_data_bone_motion)).cuda().half()
     # self.mix = np.concatenate((self.joint,self.bone,self.joint_motion),axis=1)
     
  
@@ -169,8 +173,8 @@ class test_loader(Dataset):
     return {
             "joint":self.joint[item],
             "bone":self.bone[item],
-            "joint_motion":self.joint_motion[item],
-            "bone_motion":self.bone_motion[item],
+            # "joint_motion":self.joint_motion[item],
+            # "bone_motion":self.bone_motion[item],
             # "mix":self.norm(self.mix[item]),
             },self.label[item]
   def __len__(self):
@@ -208,17 +212,69 @@ def test(model, batch_size, mod):
     print("acc:",(correct/total).item())
     return (correct/total).item()
 
+
 def train(epoch,batch_size, model_name, mod, args=3):
-  
-  model = model_list[model_name](in_channels=args).train().cuda().half()
+  in_channels=args
+  if model_name == "CTR":
+    model = model_list[model_name](in_channels=args).train().cuda().half()
+  else:
+    model = model_list[model_name]().train().cuda().half()
   
   dataloader = DataLoader(data_loader(),batch_size = batch_size,shuffle=True)
   optimizer = op.SGD(model.parameters(), lr=0.01,momentum=0.9,weight_decay=0.0004)
-  # schedule = op.lr_scheduler.LambdaLR(optimizer, lr_lambda = lambda epoch: 1/(1+epoch))
+  schedule = op.lr_scheduler.LambdaLR(optimizer, lr_lambda = lambda ep: cos(2*pi*ep/epoch+1))
   loss_fn =  nn.CrossEntropyLoss()
   
   logger = get_logger("./log/"+model_name+"_"+mod+"_"+time.strftime("%d %H:%M:%S"))
   logger.info("start training")
+  
+  print("start training")
+  for e in range(epoch):
+    logger.info(f"epoch:{e}")
+    with torch.cuda.amp.autocast():
+       for batch, (train_data, train_label)in enumerate(dataloader):
+      
+        train_data = train_data[mod]
+      
+        optimizer.zero_grad()
+        label = torch.zeros((batch_size,155)).cuda()
+        for i in range(batch_size):
+          label[i,train_label[i]]=1
+        pred = model(train_data)
+    
+        loss = loss_fn(pred,label)
+      
+        loss.backward()
+        optimizer.step()
+      
+        if batch%100 == 0:
+          logger.info(f"batch:{batch}"+"   "+f"loss:{loss.item()}")
+    
+    # if e > 32:
+    schedule.step()
+    
+    logger.info(test(model, 16, mod))
+    
+    if e%16 == 15:
+      logger.info(test(model, 16, mod))
+      if os.path.exists("./ckpt") == False:
+        os.mkdir("./ckpt")
+      torch.save(model.state_dict(),osp.join(f"./ckpt/{mod}_{model_name}_{e}.pth"))  
+ 
+def train_form_ckpt(ckpt, epoch,batch_size, model_name, mod, args=3):
+  
+  model = model_list[model_name](in_channels=args)
+  model.load_state_dict(torch.load(f"./ckpt/{ckpt}.pth"))
+  model.train().cuda().half()
+  test(model, 16, mod)
+  
+  dataloader = DataLoader(data_loader(),batch_size = batch_size,shuffle=True)
+  optimizer = op.SGD(model.parameters(), lr=0.001,momentum=0.9,weight_decay=0.0004)
+  schedule = op.lr_scheduler.LambdaLR(optimizer, lr_lambda = lambda ep: (2*pi*ep/epoch+1))
+  loss_fn =  nn.CrossEntropyLoss()
+  
+  logger = get_logger("./log/"+model_name+"_"+mod+"_"+time.strftime("%d %H:%M:%S"))
+  logger.info("continue training")
   
   print("start training")
   for e in range(epoch):
@@ -241,19 +297,31 @@ def train(epoch,batch_size, model_name, mod, args=3):
       if batch%100 == 0:
         logger.info(f"batch:{batch}"+"   "+f"loss:{loss.item()}")
     
-    # if e < 10:
-    #   schedule.step()
+    if e < 10:
+      schedule.step()
     
-    test(model, 16, mod)
+    logger.info(f"test acc:{test(model, 16, mod)}")
     
-    if e%16 == 15:
-      logger.info(test(model, 16, mod))
+    if e%4 == 3:
       if os.path.exists("./ckpt") == False:
         os.mkdir("./ckpt")
-      torch.save(model.state_dict(),osp.join(f"./ckpt/{mod}_{model_name}_{e}.pth"))  
+      torch.save(model.state_dict(),osp.join(f"./ckpt/{mod}_{model_name}_{e+63}.pth"))  
  
+  
  
 # train(64,16, "CTR","joint") 
-train(64,16, "CTR","bone")      
-# train(64,16, "MIX","mix",9)
-      
+# train(64,16, "CTR","bone")
+# train(64,16, "CTR","joint_motion")
+# train(64,16, "CTR","bone_motion")
+# train(64,16,"TD","joint")
+# train(64,8,"TD","bone")
+train(64,16, "STT","joint")
+# train(64,16, "STT","bone")
+# train(64,16, "SM","joint")
+# train(64,16, "SM","bone")
+
+
+# train_form_ckpt("joint_motion_CTR_31",64,16, "CTR","joint_motion")
+# train_form_ckpt("joint_CTR_63",64,16, "CTR","joint")
+# train_form_ckpt("bone_CTR_63",64,16, "CTR","bone")
+# train_form_ckpt("joint_TD_31",64,16, "TD","joint")     
