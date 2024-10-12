@@ -2,8 +2,8 @@
 # feeder
 feeder: feeders.feeder_gcl.Feeder
 train_feeder_args:
-  data_path: ./data/train_joint.npy
-  label_path: ./data/train_label.npy
+  data_path: ./data/mix_joint.npy
+  label_path: ./data/mix_label.npy
   debug: False
   random_choose: False
   random_shift: False
