@@ -1,0 +1,34 @@
+
+# feeder
+feeder: feeders.feeder_gcl.Feeder
+train_feeder_args:
+  data_path: ./data/train_bone.npy
+  label_path: ./data/train_label.npy
+  debug: False
+  random_choose: False
+  random_shift: False
+  random_move: False
+  window_size: -1
+  normalization: False
+
+test_feeder_args:
+  data_path: ./data/test_bone.npy
+  label_path: ./data/test_label.npy
+
+# model
+model: model.sttformer.Model
+model_args:
+  num_classes: 155
+
+
+#optim
+weight_decay: 0.0001
+base_lr: 0.1
+step: [30, 40]
+
+# training
+device: 0
+batch_size: 32
+test_batch_size: 32
+num_epoch: 50
+nesterov: True

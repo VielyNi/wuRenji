@@ -1,0 +1,20 @@
+# feeder
+feeder: feeders.feeder.Feeder
+test_feeder_args:
+  data_path: /home/niyunfei/workspace/wuRenji/wuRenji/data/val_bone.npy
+  label_path: /home/niyunfei/workspace/wuRenji/wuRenji/data/val_label.npy
+  # data_path: /home/niyunfei/workspace/wuRenji/wuRenji/wuRenji/data/test_bone.npy
+  # label_path: /home/niyunfei/workspace/wuRenji/wuRenji/wuRenji/data/test_label.npy
+  debug: False
+
+# model
+model: model.sttformer.Model
+model_args:
+  num_classes: 155
+
+# test
+phase: test
+device: 0
+test_batch_size: 56
+
+save_score: True

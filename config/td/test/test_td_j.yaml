@@ -1,0 +1,24 @@
+# feeder
+feeder: feeders.feeder.Feeder
+test_feeder_args:
+  # data_path: /home/niyunfei/workspace/wuRenji/wuRenji/wuRenji/data/val_joint.npy
+  # label_path: /home/niyunfei/workspace/wuRenji/wuRenji/wuRenji/data/val_label.npy
+  data_path: /home/niyunfei/workspace/wuRenji/wuRenji/data/test_joint.npy
+  label_path: /home/niyunfei/workspace/wuRenji/wuRenji/data/test_label.npy
+  debug: False
+
+# model
+model: model.tdgcn_GCL.Model
+model_args:
+  num_class: 155
+  num_point: 17
+  num_person: 2
+  graph: graph.uav.Graph
+  graph_args:
+    labeling_mode: 'spatial'
+
+# test
+phase: test
+device: 0
+
+save_score: True

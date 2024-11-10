@@ -1,0 +1,36 @@
+
+# feeder
+feeder: feeders.feeder.Feeder
+train_feeder_args:
+  data_path: ./data/train_joint.npy
+  label_path: ./data/train_label.npy
+  debug: False
+  random_choose: False
+  random_shift: False
+  random_move: False
+  window_size: -1
+  normalization: False
+
+test_feeder_args:
+  data_path: ./data/val_joint.npy
+  label_path: ./data/val_label.npy
+
+# model
+model: model.msst.Model
+model_args:
+  num_class: 155
+  dropout: 0.8
+
+
+#optim
+weight_decay: 0.0001
+base_lr: 0.1
+step: [30, 40]
+# step: [50, 80]
+
+# training
+device: 0
+batch_size: 32
+test_batch_size: 32
+num_epoch: 100
+nesterov: True
