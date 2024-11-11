@@ -53,9 +53,9 @@
 
 受到[(Causality-inspired Discriminative Feature Learning in Triple Domains for Gait Recognition)](https://arxiv.org/abs/2407.12519)启发。我们从步态识别的相关研究获得启发，将因果推断的想法与卷积神经网络结合。在我们的基于卷积的模型中。我们使用了上文提出的CPAG模块来学习事实推断和反事实推断，通过无偏场景图生成的因果推断中的总直接效应( Total Direct Effect，TDE )来减轻上下文偏差。从而有
 
-- Y f = P(Y |X = xf )
-- Y cf = P(Y |do(X = xcf ))
-- TDE = Y f − Y cf ,
+- $Y f = P(Y |X = xf )$
+- $Y cf = P(Y |do(X = xcf ))$
+- $TDE = Y f − Y cf$
 
 我们通过最大化TDE和事实概率来消除混杂因素的影响。这个模块仅在训练时加入以增强通道间的特征表示并在测试时移除。
 我们在基于CNN的模型中使用该方法。
