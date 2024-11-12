@@ -3,14 +3,15 @@
 - 大致思路
   - 采用如下7个模型在joint, bone, joint cat bone三个模态上训练所得20个模型进行混合投票（其中MIX没有joint cat bone）。
   - GCN与CNN模型上采用了如下提出的相关模块进行训练。
+  - ctr_GCL与ctr_GCL_t是同一个模型，训练时没有删除相关模块代码，加载时必须存在，但是在FORWARD函数里并没有使用。
 - 用法
     - 训练和测试参数均在CONFIG里，文件名对应的是训练脚本，EVAL里需要手动改成测试配置和CKPT。
     `sh scripts/[_model you choose_].sh`
     - 采用和下方CKPT/PRED里相同的文件夹名称保存测试，并修改vm.py文件里的路径为[your_dir]/pred，确保投票参数与模型对应。
 - CKPT and LOG
 
-    [点击下载](https://pan.baidu.com/s/1sqOkKn1GdWWFuzMn3FvvMQ?pwd=d8b4)
-  链接: https://pan.baidu.com/s/1sqOkKn1GdWWFuzMn3FvvMQ?pwd=d8b4 提取码: d8b4
+    [点击下载](https://pan.baidu.com/s/1hUGS80TWc7bfI1FpgtmLNg?pwd=f1st)
+  链接: https://pan.baidu.com/s/1hUGS80TWc7bfI1FpgtmLNg?pwd=f1st 提取码: f1st
 ## 算法说明
 
 ### 混合专家机制（Mixed Expert Models）
