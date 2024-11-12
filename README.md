@@ -5,9 +5,7 @@
     `sh scripts/[_model you choose_].sh`
 - CKPT and LOG
 
-    [点击下载](https://pan.baidu.com/s/1KOF0mKGaATm1O0DLV3yhdw?pwd=4bfi)
-  链接: https://pan.baidu.com/s/1KOF0mKGaATm1O0DLV3yhdw?pwd=4bfi 提取码: 4bfi 复制这段内容后打开百度网盘手机App，操作更方便哦
-
+    [点击下载]
 ## 算法说明
 
 ### 混合专家机制（Mixed Expert Models）
