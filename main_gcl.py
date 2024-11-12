@@ -544,15 +544,15 @@ class Processor():
             # self.lr_scheduler.step(loss)
             print('Accuracy: ', accuracy, 'Best',self.best_acc,'ep',self.best_idx, ' model: ', self.arg.model_saved_name)
             if self.arg.phase == 'train':
-                self.val_writer.add_scalar('loss', loss, self.global_step)
+                # self.val_writer.add_scalar('loss', loss, self.global_step)
                 self.val_writer.add_scalar('loss_l1', l1, self.global_step)
                 self.val_writer.add_scalar('acc', accuracy, self.global_step)
 
-            self.print_log('\tMean {} loss of {} batches: {}.'.format(
-                ln, len(self.data_loader[ln]), np.mean(loss_value)))
-            for k in self.arg.show_topk:
-                self.print_log('\tTop{}: {:.2f}%'.format(
-                    k, 100 * self.data_loader[ln].dataset.top_k(score, k)))
+            # self.print_log('\tMean {} loss of {} batches: {}.'.format(
+            #     ln, len(self.data_loader[ln]), np.mean(loss_value)))
+            # for k in self.arg.show_topk:
+            #     self.print_log('\tTop{}: {:.2f}%'.format(
+            #         k, 100 * self.data_loader[ln].dataset.top_k(score, k)))
 
             if save_score:
                 np.save('{}/epoch{}_{}_score.npy'.format(self.arg.work_dir, epoch + 1, ln),score)
