@@ -46,7 +46,7 @@
 
 ![GCL](./src/gcl.png)
 
-我们在基于GCN的模型中使用该方法。
+#### 我们在基于GCN的模型中使用该方法。
 
 ### 因果启发的判别特征学习（Causality-inspired Discriminative Feature Learning）
 
@@ -62,6 +62,6 @@
 - $TDE = Y f − Y cf$
 
 我们通过最大化TDE和事实概率来消除混杂因素的影响。这个模块仅在训练时加入以增强通道间的特征表示并在测试时移除。
-我们在基于CNN的模型中使用该方法。
+#### 我们在基于CNN的模型中使用该方法。
 
 ![CAUSAL](./src/causal.png)
