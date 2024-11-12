@@ -22,7 +22,7 @@
 
 同时，经过实验发现，在joint与bone模态上，模型具有更强的表示能力与区分度。我们同时在joint cat bone模态上进行了实验。在这种混合模态的情况下，模型学习到了基于两者的交集与并集的信息。从而产生了与单个模态不同的表示，进而提高了模型的区分度。
 
-![MOE](./src/moe.png =600*600)
+![MOE](./src/moe.png =600x600)
 
 - STT[(Spatial-Temporal Transformer for Skeleton-based Action Recognition)](https://arxiv.org/abs/2201.02849)
 - MSST[(Multi-scale spatial–temporal convolutional neural network for skeleton-based action recognition)](https://ieeexplore.ieee.org/document/9404175)
