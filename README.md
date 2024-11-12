@@ -1,11 +1,12 @@
 # 无人机行为识别
 
 - 用法
-
+    # 训练和测试参数均在CONFIG里，文件名对应的是训练脚本，EVAL里需要手动改成测试配置和CKPT
     `sh scripts/[_model you choose_].sh`
 - CKPT and LOG
 
-    [点击下载]
+    [点击下载](https://pan.baidu.com/s/1sqOkKn1GdWWFuzMn3FvvMQ?pwd=d8b4)
+  链接: https://pan.baidu.com/s/1sqOkKn1GdWWFuzMn3FvvMQ?pwd=d8b4 提取码: d8b4 复制这段内容后打开百度网盘手机App，操作更方便哦
 ## 算法说明
 
 ### 混合专家机制（Mixed Expert Models）
@@ -50,7 +51,7 @@
 
 ![SCM](./src/scm.png)
 
-受到[(Causality-inspired Discriminative Feature Learning in Triple Domains for Gait Recognition)](https://arxiv.org/abs/2407.12519)启发。我们从步态识别的相关研究获得启发，将因果推断的想法与卷积神经网络结合。在我们的基于卷积的模型中。我们使用了上文提出的CPAG模块来学习事实推断和反事实推断，通过无偏场景图生成的因果推断中的总直接效应( Total Direct Effect，TDE )来减轻上下文偏差。从而有
+我们从步态识别的相关研究[(Causality-inspired Discriminative Feature Learning in Triple Domains for Gait Recognition)](https://arxiv.org/abs/2407.12519)获得启发，将因果推断的想法与卷积神经网络结合。在我们的基于卷积的模型中。我们使用了上文提出的CPAG模块来学习事实推断和反事实推断，通过无偏场景图生成的因果推断中的总直接效应( Total Direct Effect，TDE )来减轻上下文偏差。从而有
 
 - $Y f = P(Y |X = xf )$
 - $Y cf = P(Y |do(X = xcf ))$
