@@ -1,9 +1,9 @@
 # 无人机行为识别
 
 - 用法
-    1.训练和测试参数均在CONFIG里，文件名对应的是训练脚本，EVAL里需要手动改成测试配置和CKPT
+    - 训练和测试参数均在CONFIG里，文件名对应的是训练脚本，EVAL里需要手动改成测试配置和CKPT
     `sh scripts/[_model you choose_].sh`
-    2. 采用和下方CKPT/PRED里相同的文件夹名称保存测试，并修改vm.py文件里的路径为[your_dir]/pred，确保投票参数与模型对应。
+    - 采用和下方CKPT/PRED里相同的文件夹名称保存测试，并修改vm.py文件里的路径为[your_dir]/pred，确保投票参数与模型对应。
 - CKPT and LOG
 
     [点击下载](https://pan.baidu.com/s/1sqOkKn1GdWWFuzMn3FvvMQ?pwd=d8b4)
