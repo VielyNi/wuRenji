@@ -509,9 +509,9 @@ class Processor():
 
             # self.print_log('\tMean {} loss of {} batches: {}.'.format(
             #     ln, len(self.data_loader[ln]), np.mean(loss_value)))
-            for k in self.arg.show_topk:
-                self.print_log('\tTop{}: {:.2f}%'.format(
-                    k, 100 * self.data_loader[ln].dataset.top_k(score, k)))
+            # for k in self.arg.show_topk:
+            #     self.print_log('\tTop{}: {:.2f}%'.format(
+            #         k, 100 * self.data_loader[ln].dataset.top_k(score, k)))
 
             if save_score:
                 np.save('{}/epoch{}_{}_score.npy'.format(self.arg.work_dir, epoch + 1, ln),score)
